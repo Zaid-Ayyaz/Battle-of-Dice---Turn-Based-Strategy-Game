@@ -2,7 +2,7 @@ ZaidAyyaz
 powerhero
 30
 100
-15
-1
-1
+20
+2
+2
 1

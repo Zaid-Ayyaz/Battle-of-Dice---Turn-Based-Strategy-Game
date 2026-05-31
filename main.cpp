@@ -7,6 +7,7 @@
 #include <ctime>   
 #include <cstdlib> 
 #include <cstdio> 
+#include <vector>
 
 // ==========================================
 // WINDOWS & LINUX SUPPORT
@@ -58,7 +59,6 @@ struct PlayerAccount {
 // UTILITY FUNCTIONS & DYNAMIC UI
 // ==========================================
 
-// Clears the output screen
 void clearScreen() {
 #ifdef _WIN32
     system("cls"); 
@@ -67,7 +67,6 @@ void clearScreen() {
 #endif
 }
 
-// Moves the cursor to a specific position (x, y)
 void gotoxy(int x, int y) {
 #ifdef _WIN32
     COORD coord;
@@ -79,27 +78,28 @@ void gotoxy(int x, int y) {
 #endif
 }
 
-// Sets the text color for output
 void setColor(int color) {
 #ifdef _WIN32
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 #else
-    if (color == 10) cout << "\033[1;32m";      // Green
-    else if (color == 14) cout << "\033[1;33m"; // Yellow
-    else if (color == 12) cout << "\033[1;31m"; // Red
-    else if (color == 11) cout << "\033[1;36m"; // Cyan
-    else if (color == 13) cout << "\033[1;35m"; // Magenta
-    else cout << "\033[0m";                     // Default White
+    if (color == 10) cout << "\033[1;32m";      
+    else if (color == 14) cout << "\033[1;33m"; 
+    else if (color == 12) cout << "\033[1;31m"; 
+    else if (color == 11) cout << "\033[1;36m"; 
+    else if (color == 13) cout << "\033[1;35m"; 
+    else cout << "\033[0m";                     
     cout << flush; 
 #endif
 }
 
-// Draws a horizontal line of a specific width and color
 void drawHorizontalLine(int width, int color) {
     setColor(color);
-    cout << "  ";
-    for(int i = 0; i < width; i++) cout << "=";
-    cout << "\n";
+    cout << "  +";
+    for(int i = 0; i < width; i++) {
+        cout << "-";
+        this_thread::sleep_for(chrono::milliseconds(5));
+    } 
+    cout << "+\n";
     setColor(7);
 }
 
@@ -107,21 +107,19 @@ void drawHorizontalLine(int width, int color) {
 // ACCOUNT MANAGEMENT SYSTEM
 // ==========================================
 
-// Gets the account filename
 string getAccountFilename(string name) {
-    string core = "";
+    string filenameCore = "";
     for (size_t i = 0; i < name.length(); i++) {
         if (name[i] != ' ') {
             char ch = name[i];
             if (ch >= 'A' && ch <= 'Z') ch = ch - 'A' + 'a';
-            core += ch;
+            filenameCore += ch;
         }
-        if (core.length() == 4) break;
+        if (filenameCore.length() == 4) break;
     }
-    return "accounts/acc_" + core + ".txt";
+    return "accounts/acc_" + filenameCore + ".txt";
 }
 
-// Checks if a line is a valid integer
 bool isIntegerLine(const string& value) {
     if (value.empty()) return false;
     size_t start = 0;
@@ -133,7 +131,6 @@ bool isIntegerLine(const string& value) {
     return true;
 }
 
-// Loads an account from file
 bool loadAccount(string name, PlayerAccount* acc) {
     string filename = getAccountFilename(name);
     ifstream inFile(filename);
@@ -182,7 +179,6 @@ bool loadAccount(string name, PlayerAccount* acc) {
     return false;
 }
 
-// Saves an account to file
 void saveAccount(PlayerAccount* acc) {
     string filename = getAccountFilename(acc->username);
     ofstream outFile(filename);
@@ -194,19 +190,16 @@ void saveAccount(PlayerAccount* acc) {
     }
 }
 
-// Deletes an account file
 bool deleteAccountFile(string name) {
     string filename = getAccountFilename(name);
     return remove(filename.c_str()) == 0;
 }
 
-// Checks if an account file exists
 bool accountFileExists(const string& name) {
     ifstream file(getAccountFilename(name));
     return file.is_open();
 }
 
-// Manages the account system menu
 void manageAccountSystem(PlayerAccount* acc, bool* inHub) {
     bool inAccountMenu = true;
     while (inAccountMenu) {
@@ -215,14 +208,21 @@ void manageAccountSystem(PlayerAccount* acc, bool* inHub) {
         setColor(13); cout << "                 ACCOUNT MANAGER                   \n";
         drawHorizontalLine(54, 13);
         setColor(7);
+        this_thread::sleep_for(chrono::milliseconds(100));
 
         cout << "\n  Current Username: " << acc->username << "\n";
+        this_thread::sleep_for(chrono::milliseconds(50));
         cout << "  Password Stored  : " << (acc->password.empty() ? "Legacy Account" : "Set") << "\n\n";
+        this_thread::sleep_for(chrono::milliseconds(150));
 
         cout << "  1. Change Username\n";
+        this_thread::sleep_for(chrono::milliseconds(60));
         cout << "  2. Change Password\n";
+        this_thread::sleep_for(chrono::milliseconds(60));
         cout << "  3. Delete Account\n";
+        this_thread::sleep_for(chrono::milliseconds(60));
         cout << "  4. Back\n";
+        this_thread::sleep_for(chrono::milliseconds(100));
         cout << "  Choice: ";
 
         flushKeys();
@@ -283,329 +283,85 @@ void manageAccountSystem(PlayerAccount* acc, bool* inHub) {
 }
 
 // ==========================================
-// ASCII ART COMPONENTS
+// ASCII ART COMPONENTS (ANIMATED)
 // ==========================================
 
-// Displays the title art
 void showTitleArt() {
     setColor(14); 
-    cout << R"(
-   ____        _   _   _             __  ____  _          
-  |  _ \      | | | | | |           / _||  _ \(_)         
-  | |_) | __ _| |_| |_| | ___   ___| |_ | | | |_  ___ ___ 
-  |  _ < / _` | __| __| |/ _ \ / _ \  _|| | | | |/ __/ _ \
-  | |_) | (_| | |_| |_| |  __/| (_) | | | |_| | | (_|  __/
-  |____/ \__,_|\__|\__|_|\___| \___/|_| |____/|_|\___\___|
-    )" << "\n";
+
+    /*     ____        _   _   _             __  ____  _          
+          |  _ \      | | | | | |           / _||  _ \(_)         
+          | |_) | __ _| |_| |_| | ___   ___| |_ | | | |_  ___ ___ 
+          |  _ < / _` | __| __| |/ _ \ / _ \  _|| | | | |/ __/ _ \
+          | |_) | (_| | |_| |_| |  __/| (_) | | | |_| | | (_|  __/
+          |____/ \__,_|\__|\__|_|\___| \___/|_| |____/|_|\___\___|
+        
+    */
+
+    // CUSTOM DELIMITER 'ART' prevents the ')' in the ASCII art from breaking the string
+    const char* art[] = {
+        R"ART(   ____        _   _   _             __  ____  _          )ART",
+        R"ART(  |  _ \      | | | | | |           / _||  _ \(_)         )ART",
+        R"ART(  | |_) | __ _| |_| |_| | ___   ___| |_ | | | |_  ___ ___ )ART",
+        R"ART(  |  _ < / _` | __| __| |/ _ \ / _ \  _|| | | | |/ __/ _ \)ART",
+        R"ART(  | |_) | (_| | |_| |_| |  __/| (_) | | | |_| | | (_|  __/)ART",
+        R"ART(  |____/ \__,_|\__|\__|_|\___| \___/|_| |____/|_|\___\___|)ART"
+    };
+
+    // Hardcoded size bypasses debugger sizeof quirks
+    const int ART_SIZE = 6;
+    
+    for (int i = 0; i < ART_SIZE; i++) {
+        cout << art[i] << "\n";
+        this_thread::sleep_for(chrono::milliseconds(50));
+    }
     setColor(7);
 }
 
-
-// Displays the trophy art
 void showTrophy(string winnerName) {
     setColor(14); 
-    cout << R"(
-             ___________
-            '._==_==_=_.'
-            .-\:      /-.
-           | (|:.     |) |
-            '-|:.     |-'
-              \::.    /
-               '::. .'
-                 ) (
-               _.' '._
-              `"""""""`
-    )" << "\n";
+
+    /*
+                     ___________
+                    '._==_==_=_.'
+                    .-\:      /-.
+                   | (|:.     |) |
+                    '-|:.     |-'
+                      \::.    /
+                       '::. .'
+                         ) (
+                       _.' '._
+                      `"""""""`
+    */
+
+    const char* art[] = {
+        R"(             ___________         )",
+        R"(            '._==_==_=_.'        )",
+        R"(            .-\:      /-.        )",
+        R"(           | (|:.     |) |       )",
+        R"(            '-|:.     |-'        )",
+        R"(              \\::.    /         )",
+        R"(               '::. .'           )",
+        R"(                 ) (             )",
+        R"(               _.' '._           )",
+        R"(              `\"\"\"\"\"\"\"`   )"
+    };
+    // Animate assembling the trophy
+    for (const char* line : art) {
+        cout << line << "\n";
+        this_thread::sleep_for(chrono::milliseconds(60));
+    }
     setColor(10);
-    cout << "        CHAMPION: " << winnerName << "!\n\n";
+    cout << "        CHAMPION: ";
+    // Typewriter effect for the winner's name
+    for (char c : winnerName) {
+        cout << c << flush;
+        this_thread::sleep_for(chrono::milliseconds(80));
+    }
+    cout << "!\n\n";
     setColor(7);
 }
 
-// ==========================================
-// BATTLE FUNCTIONS & MECHANICS
-// ==========================================
-
-// Displays the status of both players
-void displayStatus(string names[], int hp[], int maxHp[], int* invP1, int* invP2) {
-    for (int p = 0; p < 2; p++) {
-        int barWidth = 25;
-        float ratio = (float)hp[p] / maxHp[p];
-        int filled = ratio * barWidth;
-
-        cout << "  " << left << setw(18) << names[p] << " ";
-        if (ratio > 0.5) setColor(10);      
-        else if (ratio > 0.25) setColor(14); 
-        else setColor(12);                  
-
-        cout << "[";
-        for (int i = 0; i < barWidth; i++) {
-            if (i < filled) cout << "#";
-            else cout << "-";
-        }
-        cout << "] " << setw(3) << hp[p] << " / " << setw(3) << maxHp[p] << "\n";
-        setColor(7); 
-        
-        setColor(11);
-        if (p == 0) cout << "  > Inv: [" << invP1[0] << " Potions | " << invP1[1] << " Shields]\n\n";
-        else        cout << "  > Inv: [" << invP2[0] << " Potions | " << invP2[1] << " Shields]\n\n";
-        setColor(7);
-    }
-}
-
-// Simulates rolling the action dice with animation
-int rollDice() {
-    int result = 0;
-    cout << "  Rolling Action Dice: [ ";
-    int delay = 20; 
-    for (int i = 0; i < 15; i++) {
-        result = (rand() % 6) + 1;
-        cout << result << flush;
-        cout << " ]";
-        this_thread::sleep_for(chrono::milliseconds(delay));
-        delay += 5; 
-        cout << "\b\b\b"; 
-    }
-    setColor(14); cout << result; setColor(7);
-    cout << "\n";
-    this_thread::sleep_for(chrono::milliseconds(300)); 
-    return result;
-}
-
-// Maps dice rolls to action names for display
-string actionNameFromDice(int diceRoll) {
-    switch (diceRoll) {
-        case 1: return "ATTACK";
-        case 2: return "DEFEND";
-        case 3: return "ITEM";
-        case 4: return "CHARGE";
-        case 5: return "SPECIAL";
-        case 6: return "COMBO";
-        default: return "ATTACK";
-    }
-}
-
-// Applies defense reduction based on the shield type
-int applyDefenseReduction(int damage, int defenseState) {
-    if (defenseState == 1) return damage / 2; // Guard
-    if (defenseState == 2) return damage / 10; // Energy Shield (90% reduction)
-    return damage; // Failed shield or none
-}
-
-// Handles the attack style selection for both human and AI players
-char chooseAttackStyle(bool isHuman, const string& attackerName) {
-    if (!isHuman) {
-        int roll = rand() % 4;
-        return char('1' + roll);
-    }
-
-    setColor(11);
-    cout << "  +-------------------------------------------------------------+\n";
-    cout << "  | CHOOSE ATTACK ARSENAL                                       |\n";
-    cout << "  +-------------------------------------------------------------+\n";
-    cout << "  | 1. Quick Strike     (Pro: Never Miss | Con: 1.0x Dmg Base)  |\n";
-    cout << "  | 2. Heavy Smash      (Pro: 1.5x Dmg   | Con: 33% Miss Chance)|\n";
-    cout << "  | 3. Precision Pierce (Pro: 2.0x Crit  | Con: Miss & 5 Recoil)|\n";
-    cout << "  | 4. Reckless Cleave  (Pro: Max 2.5x   | Con: Miss & 15 Recoil|\n";
-    cout << "  +-------------------------------------------------------------+\n";
-    setColor(7);
-    cout << "  Choice: ";
-
-    flushKeys();
-    char choice = _getch();
-    cout << choice << "\n";
-    if (choice < '1' || choice > '4') return '1';
-    return choice;
-}
-
-// Handles the shield style selection for both human and AI players
-int chooseShieldStyle(bool isHuman, const string& defenderName, int* inventory, int diceRoll) {
-    if (inventory[1] <= 0) return 0;
-
-    if (!isHuman) {
-        int choice = (inventory[1] >= 2 && rand() % 2 == 0) ? 2 : 1;
-        if (choice == 2) {
-            if (diceRoll <= 2) {
-                inventory[1]--;
-                setColor(14); cout << "  > Enemy Energy Shield faltered, so it fell back to a Standard Guard.\n"; setColor(7);
-                return 1;
-            }
-            inventory[1] -= 2;
-            setColor(13); cout << "  > Enemy deployed Energy Shield! Incoming damage reduced by 90%.\n"; setColor(7);
-            return 2;
-        }
-        inventory[1]--;
-        setColor(13); cout << "  > Enemy uses a normal Guard. Damage halved.\n"; setColor(7);
-        return 1;
-    }
-
-    setColor(11);
-    cout << "  +-------------------------------------------------------------+\n";
-    cout << "  | CHOOSE SHIELD TYPE                                          |\n";
-    cout << "  +-------------------------------------------------------------+\n";
-    cout << "  | 1. Standard Guard   (Pro: Reliable -50% Dmg | Con: Cost 1)  |\n";
-    cout << "  | 2. Overcharge Shield(Pro: Massive -90% Dmg  | Con: Cost 2* )|\n";
-    cout << "  |    *Warning: Fails completely if dice rolls 1 or 2.         |\n";
-    cout << "  +-------------------------------------------------------------+\n";
-    setColor(7);
-    cout << "  Choice: ";
-
-    flushKeys();
-    char choice = _getch();
-    cout << choice << "\n";
-
-    if (choice == '2' && inventory[1] >= 2) {
-        if (diceRoll <= 2) {
-            inventory[1]--;
-            setColor(14); cout << "  > OVERCHARGE MISFIRED! It fell back to a Standard Guard instead.\n"; setColor(7);
-            return 1;
-        }
-        inventory[1] -= 2;
-        setColor(11); cout << "  > OVERCHARGE DEPLOYED! Incoming damage reduced by 90%.\n"; setColor(7);
-        return 2;
-    }
-
-    if (choice == '2' && inventory[1] == 1) {
-        setColor(14); cout << "  > Not enough shields for Overcharge, using Standard Guard.\n"; setColor(7);
-        inventory[1]--;
-        return 1;
-    }
-
-    if (choice == '1' && inventory[1] > 0) {
-        inventory[1]--;
-        setColor(11); cout << "  > Standard Guard active. Damage halved.\n"; setColor(7);
-        return 1;
-    }
-
-    return 0; // Out of shields fallback
-}
-
-// Resolves the attack damage based on the chosen attack style, dice roll, and critical hit status
-int resolveAttackDamage(int baseDmg, char attackStyle, int diceRoll, int& selfHp, bool criticalHit) {
-    if (attackStyle == '2') { // Heavy Smash
-        if (diceRoll <= 2) { // 33% miss
-            setColor(12); cout << "  > Heavy Smash swung wide and missed!\n"; setColor(7);
-            return 0;
-        }
-        setColor(13); cout << "  > Heavy Smash crushes the defense!\n"; setColor(7);
-        int damage = (baseDmg * 3) / 2 + diceRoll;
-        if (criticalHit) {
-            setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
-            damage *= 2;
-        }
-        return damage;
-    } else if (attackStyle == '3') { // Precision Pierce
-        if (diceRoll <= 3) { // High risk
-            setColor(12); cout << "  > Precision Pierce missed the vital point! You stumbled (-5 HP).\n"; setColor(7);
-            selfHp -= 5;
-            return 0;
-        }
-        setColor(14); cout << "  > CRITICAL! Precision Pierce hits a vital artery!\n"; setColor(7);
-        int damage = baseDmg * 2;
-        if (criticalHit) {
-            setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
-            damage *= 2;
-        }
-        return damage;
-    } else if (attackStyle == '4') { // Reckless Cleave
-        if (diceRoll <= 1) { // 16% miss chance but huge penalty
-            setColor(12); cout << "  > Reckless Cleave completely misses! (-15 HP Recoil)\n"; setColor(7);
-            selfHp -= 15;
-            return 0;
-        }
-        setColor(12); cout << "  > Brutal Cleave lands! But the strain hurts you (-15 HP Recoil)\n"; setColor(7);
-        selfHp -= 15;
-        int damage = (baseDmg * 5) / 2;
-        if (criticalHit) {
-            setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
-            damage *= 2;
-        }
-        return damage;
-    }
-
-    // Quick Strike (Fallback/Style 1)
-    setColor(11); cout << "  > Quick Strike hits securely.\n"; setColor(7);
-    int damage = baseDmg;
-    if (criticalHit && damage > 0) {
-        setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
-        damage *= 2;
-    }
-
-    return damage;
-}
-
-// Handles the item usage for both human and AI players
-int useItem(int* inventory, bool isHuman, int maxHp) {
-    if (inventory[0] > 0) {
-        if (isHuman) {
-            setColor(11); cout << "  > You have " << inventory[0] << " Potions. Drink one? (Y/N): "; setColor(7);
-            flushKeys(); 
-            char choice = _getch(); cout << choice << "\n";
-            this_thread::sleep_for(chrono::milliseconds(300));
-            
-            if (choice == 'y' || choice == 'Y') {
-                inventory[0]--;
-                int healAmount = maxHp / 4;
-                if (healAmount < 1) healAmount = 1;
-                setColor(10); cout << "  > Drank a Potion! Restored " << healAmount << " HP.\n"; setColor(7);
-                return healAmount;
-            } else {
-                setColor(14); cout << "  > You saved your potion. Action skipped!\n"; setColor(7);
-                return 0;
-            }
-        } else {
-            inventory[0]--;
-            int healAmount = maxHp / 4;
-            if (healAmount < 1) healAmount = 1;
-            setColor(10); cout << "  > Enemy Drank a Potion! Restored " << healAmount << " HP.\n"; setColor(7);
-            return healAmount;
-        }
-    }
-    setColor(12); cout << "  > Inventory empty! Turn wasted.\n"; setColor(7);
-    return 0;
-}
-
-// ==========================================
-// MENUS & BRIEFING
-// ==========================================
-
-// Displays the pre-match briefing with game mode instructions
-void showPreMatchBriefing(int gameMode) {
-    clearScreen();
-    setColor(11);
-    drawHorizontalLine(54, 11);
-    cout << "                BATTLE PROTOCOLS ENGAGED                \n";
-    drawHorizontalLine(54, 11);
-    cout << "\n";
-    setColor(7);
-
-    if (gameMode == 1) {
-        cout << "  [ CLASSIC STRATEGY MODE ]\n";
-        cout << "  Select your primary action, then roll the Dice to resolve it.\n\n";
-        setColor(12); cout << "    [1] ATTACK  : "; setColor(7); cout << "Strike using different balanced tactics.\n";
-        setColor(11); cout << "    [2] DEFEND  : "; setColor(7); cout << "Guard or Overcharge your shields.\n";
-        setColor(10); cout << "    [3] ITEM    : "; setColor(7); cout << "Drink a POTION to restore 25% of Max HP.\n";
-        setColor(14); cout << "    [4] CHARGE  : "; setColor(7); cout << "Heal 5 HP and power up your next attack.\n";
-        setColor(13); cout << "    [5] SPECIAL : "; setColor(7); cout << "Unleash a powerful burst (3x Dmg).\n";
-        setColor(11); cout << "    [6] COMBO   : "; setColor(7); cout << "Super Ultimate (4x Dmg) if preceded by a 5.\n\n";
-    } else {
-        cout << "  [ DICE-BOUND MODE ]\n";
-        cout << "  Fate decides your stance! Roll the Dice FIRST to unlock specific actions.\n\n";
-        setColor(12); cout << "    Roll 1 : "; setColor(7); cout << "Offensive Stance (Attack / Charge)\n";
-        setColor(11); cout << "    Roll 2 : "; setColor(7); cout << "Skirmisher Stance (Attack / Defend)\n";
-        setColor(10); cout << "    Roll 3 : "; setColor(7); cout << "Survival Stance (Defend / Item)\n";
-        setColor(14); cout << "    Roll 4 : "; setColor(7); cout << "Recovery Stance (Item / Charge)\n";
-        setColor(13); cout << "    Roll 5 : "; setColor(7); cout << "Burst Stance (Attack / Special)\n";
-        setColor(11); cout << "    Roll 6 : "; setColor(7); cout << "Ultimate Stance (Attack / Defend / Combo)\n\n";
-    }
-    
-    setColor(12); cout << "  [!] HAZARDS : "; setColor(7); cout << "Dynamic Arena Events trigger every 3 rounds!\n\n";
-
-    drawHorizontalLine(54, 11);
-    cout << "    Press any key to enter the Arena..."; 
-    flushKeys(); _getch();
-}
-
-// Displays the loading screen
 void animateLoadingScreen() {
     clearScreen(); 
     int barLength = 40;  
@@ -640,7 +396,325 @@ void animateLoadingScreen() {
     flushKeys(); _getch();
 }
 
-// Displays the leaderboard
+// ==========================================
+// BATTLE FUNCTIONS & MECHANICS
+// ==========================================
+
+void displayStatus(string names[], int hp[], int maxHp[], int* invP1, int* invP2) {
+    for (int p = 0; p < 2; p++) {
+        int barWidth = 25;
+        float ratio = (float)hp[p] / maxHp[p];
+        int filled = ratio * barWidth;
+
+        cout << "  " << left << setw(18) << names[p] << " ";
+        if (ratio > 0.5) setColor(10);      
+        else if (ratio > 0.25) setColor(14); 
+        else setColor(12);                  
+
+        cout << "[";
+        for (int i = 0; i < barWidth; i++) {
+            if (i < filled) {
+                cout << "#";
+                this_thread::sleep_for(chrono::milliseconds(20));
+            }
+            else {
+                cout << "-";
+                this_thread::sleep_for(chrono::milliseconds(10));
+            }
+        }
+        cout << "] " << setw(3) << hp[p] << " / " << setw(3) << maxHp[p] << "\n";
+        setColor(7); 
+        
+        setColor(11);
+        if (p == 0) {
+            cout << "  > Inv: [" << invP1[0] << " Potions | " << invP1[1] << " Shields]\n\n";
+            this_thread::sleep_for(chrono::milliseconds(150)); // Pause between players
+        } else {
+            cout << "  > Inv: [" << invP2[0] << " Potions | " << invP2[1] << " Shields]\n\n";
+        }
+        setColor(7);
+    }
+}
+
+string actionNameFromDice(int diceRoll) {
+    switch (diceRoll) {
+        case 1: return "ATTACK";
+        case 2: return "DEFEND";
+        case 3: return "ITEM";
+        case 4: return "CHARGE";
+        case 5: return "SPECIAL";
+        case 6: return "COMBO";
+        default: return "ATTACK";
+    }
+}
+
+int rollDice() {
+    int result = 0;
+    cout << "  Rolling Action Dice: [ ";
+    int delay = 20; 
+    for (int i = 0; i < 15; i++) {
+        result = (rand() % 6) + 1;
+        cout << result << flush;
+        cout << " ]";
+        this_thread::sleep_for(chrono::milliseconds(delay));
+        delay += 5; 
+        cout << "\b\b\b"; 
+    }
+    setColor(14); cout << result; setColor(7);
+    cout << "\n";
+    this_thread::sleep_for(chrono::milliseconds(300)); 
+    return result;
+}
+
+int applyDefenseReduction(int damage, int defenseState) {
+    if (defenseState == 1) return damage / 2; 
+    if (defenseState == 2) return damage / 10; 
+    return damage; 
+}
+
+char chooseAttackStyle(bool isHuman, const string& attackerName) {
+    if (!isHuman) {
+        int roll = rand() % 4;
+        return char('1' + roll);
+    }
+
+    setColor(11);
+    cout << "  +-------------------------------------------------------------+\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | CHOOSE ATTACK ARSENAL                                       |\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  +-------------------------------------------------------------+\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | 1. Quick Strike     (Pro: Never Miss | Con: 1.0x Dmg Base)  |\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | 2. Heavy Smash      (Pro: 1.5x Dmg   | Con: 33% Miss Chance)|\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | 3. Precision Pierce (Pro: 2.0x Crit  | Con: Miss & 5 Recoil)|\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | 4. Reckless Cleave  (Pro: Max 2.5x   | Con: Miss & 15 Recoil|\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  +-------------------------------------------------------------+\n";
+    setColor(7);
+    cout << "  Choice: ";
+
+    flushKeys();
+    char choice = _getch();
+    cout << choice << "\n";
+    if (choice < '1' || choice > '4') return '1';
+    return choice;
+}
+
+int chooseShieldStyle(bool isHuman, const string& defenderName, int* inventory, int diceRoll) {
+    if (inventory[1] <= 0) return 0;
+
+    if (!isHuman) {
+        int choice = (inventory[1] >= 2 && rand() % 2 == 0) ? 2 : 1;
+        if (choice == 2) {
+            if (diceRoll <= 2) {
+                inventory[1]--;
+                setColor(14); cout << "  > Enemy Energy Shield faltered, so it fell back to a Standard Guard.\n"; setColor(7);
+                return 1;
+            }
+            inventory[1] -= 2;
+            setColor(13); cout << "  > Enemy deployed Energy Shield! Incoming damage reduced by 90%.\n"; setColor(7);
+            return 2;
+        }
+        inventory[1]--;
+        setColor(13); cout << "  > Enemy uses a normal Guard. Damage halved.\n"; setColor(7);
+        return 1;
+    }
+
+    setColor(11);
+    cout << "  +-------------------------------------------------------------+\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | CHOOSE SHIELD TYPE                                          |\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  +-------------------------------------------------------------+\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | 1. Standard Guard   (Pro: Reliable -50% Dmg | Con: Cost 1)  |\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  | 2. Overcharge Shield(Pro: Massive -90% Dmg  | Con: Cost 2* )|\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  |    *Warning: Fails completely if dice rolls 1 or 2.         |\n";
+    this_thread::sleep_for(chrono::milliseconds(20));
+    cout << "  +-------------------------------------------------------------+\n";
+    setColor(7);
+    cout << "  Choice: ";
+
+    flushKeys();
+    char choice = _getch();
+    cout << choice << "\n";
+
+    if (choice == '2' && inventory[1] >= 2) {
+        if (diceRoll <= 2) {
+            inventory[1]--;
+            setColor(14); cout << "  > OVERCHARGE MISFIRED! It fell back to a Standard Guard instead.\n"; setColor(7);
+            return 1;
+        }
+        inventory[1] -= 2;
+        setColor(11); cout << "  > OVERCHARGE DEPLOYED! Incoming damage reduced by 90%.\n"; setColor(7);
+        return 2;
+    }
+
+    if (choice == '2' && inventory[1] == 1) {
+        setColor(14); cout << "  > Not enough shields for Overcharge, using Standard Guard.\n"; setColor(7);
+        inventory[1]--;
+        return 1;
+    }
+
+    if (choice == '1' && inventory[1] > 0) {
+        inventory[1]--;
+        setColor(11); cout << "  > Standard Guard active. Damage halved.\n"; setColor(7);
+        return 1;
+    }
+
+    return 0; 
+}
+
+int resolveAttackDamage(int baseDmg, char attackStyle, int diceRoll, int& selfHp, bool criticalHit) {
+    if (attackStyle == '2') { 
+        if (diceRoll <= 2) { 
+            setColor(12); cout << "  > Heavy Smash swung wide and missed!\n"; setColor(7);
+            return 0;
+        }
+        setColor(13); cout << "  > Heavy Smash crushes the defense!\n"; setColor(7);
+        int damage = (baseDmg * 3) / 2 + diceRoll;
+        if (criticalHit) {
+            setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
+            damage *= 2;
+        }
+        return damage;
+    } else if (attackStyle == '3') { 
+        if (diceRoll <= 3) { 
+            setColor(12); cout << "  > Precision Pierce missed the vital point! You stumbled (-5 HP).\n"; setColor(7);
+            selfHp -= 5;
+            return 0;
+        }
+        setColor(14); cout << "  > CRITICAL! Precision Pierce hits a vital artery!\n"; setColor(7);
+        int damage = baseDmg * 2;
+        if (criticalHit) {
+            setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
+            damage *= 2;
+        }
+        return damage;
+    } else if (attackStyle == '4') { 
+        if (diceRoll <= 1) { 
+            setColor(12); cout << "  > Reckless Cleave completely misses! (-15 HP Recoil)\n"; setColor(7);
+            selfHp -= 15;
+            return 0;
+        }
+        setColor(12); cout << "  > Brutal Cleave lands! But the strain hurts you (-15 HP Recoil)\n"; setColor(7);
+        selfHp -= 15;
+        int damage = (baseDmg * 5) / 2;
+        if (criticalHit) {
+            setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
+            damage *= 2;
+        }
+        return damage;
+    }
+
+    setColor(11); cout << "  > Quick Strike hits securely.\n"; setColor(7);
+    int damage = baseDmg;
+    if (criticalHit && damage > 0) {
+        setColor(14); cout << "  > CHARGE POWER! Critical Hit doubles the strike!\n"; setColor(7);
+        damage *= 2;
+    }
+
+    return damage;
+}
+
+int useItem(int* inventory, bool isHuman, int maxHp) {
+    if (inventory[0] > 0) {
+        if (isHuman) {
+            setColor(11); cout << "  > You have " << inventory[0] << " Potions. Drink one? (Y/N): "; setColor(7);
+            flushKeys(); 
+            char choice = _getch(); cout << choice << "\n";
+            this_thread::sleep_for(chrono::milliseconds(300));
+            
+            if (choice == 'y' || choice == 'Y') {
+                inventory[0]--;
+                int healAmount = maxHp / 4;
+                if (healAmount < 1) healAmount = 1;
+                setColor(10); cout << "  > Drank a Potion! Restored " << healAmount << " HP.\n"; setColor(7);
+                return healAmount;
+            } else {
+                setColor(14); cout << "  > You saved your potion. Action skipped!\n"; setColor(7);
+                return 0;
+            }
+        } else {
+            inventory[0]--;
+            int healAmount = maxHp / 4;
+            if (healAmount < 1) healAmount = 1;
+            setColor(10); cout << "  > Enemy Drank a Potion! Restored " << healAmount << " HP.\n"; setColor(7);
+            return healAmount;
+        }
+    }
+    setColor(12); cout << "  > Inventory empty! Turn wasted.\n"; setColor(7);
+    return 0;
+}
+
+// ==========================================
+// MENUS & BRIEFING (ANIMATED DRAW-IN)
+// ==========================================
+
+void showPreMatchBriefing(int gameMode) {
+    clearScreen();
+    setColor(11);
+    drawHorizontalLine(54, 11);
+    this_thread::sleep_for(chrono::milliseconds(100));
+    cout << "                BATTLE PROTOCOLS ENGAGED                \n";
+    drawHorizontalLine(54, 11);
+    this_thread::sleep_for(chrono::milliseconds(200));
+    cout << "\n";
+    setColor(7);
+
+    if (gameMode == 1) {
+        cout << "  [ CLASSIC STRATEGY MODE ]\n";
+        this_thread::sleep_for(chrono::milliseconds(150));
+        cout << "  Roll the Strategy Dice to unlock a specific set of tactical actions.\n";
+        this_thread::sleep_for(chrono::milliseconds(100));
+        cout << "  Choose wisely from the options granted by the roll!\n\n";
+        this_thread::sleep_for(chrono::milliseconds(200));
+        setColor(12); cout << "    Roll 1 : "; setColor(7); cout << "Offensive / Defensive Options\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(11); cout << "    Roll 2 : "; setColor(7); cout << "Defensive / Survival Options\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(10); cout << "    Roll 3 : "; setColor(7); cout << "Survival / Recovery Options\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(14); cout << "    Roll 4 : "; setColor(7); cout << "Recovery / Power-Up Options\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(13); cout << "    Roll 5 : "; setColor(7); cout << "Power-Up / Ultimate Options\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(11); cout << "    Roll 6 : "; setColor(7); cout << "Wildcard (Attack / Defend / Combo)\n\n";
+        this_thread::sleep_for(chrono::milliseconds(200));
+    } else {
+        cout << "  [ DICE-BOUND MODE ]\n";
+        this_thread::sleep_for(chrono::milliseconds(150));
+        cout << "  Fate binds your hands! The dice strictly dictates your action.\n\n";
+        this_thread::sleep_for(chrono::milliseconds(200));
+        setColor(12); cout << "    Roll 1 : "; setColor(7); cout << "FORCED ATTACK\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(11); cout << "    Roll 2 : "; setColor(7); cout << "FORCED DEFEND\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(10); cout << "    Roll 3 : "; setColor(7); cout << "FORCED ITEM\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(14); cout << "    Roll 4 : "; setColor(7); cout << "FORCED CHARGE\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(13); cout << "    Roll 5 : "; setColor(7); cout << "FORCED SPECIAL\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
+        setColor(11); cout << "    Roll 6 : "; setColor(7); cout << "FORCED COMBO\n\n";
+        this_thread::sleep_for(chrono::milliseconds(200));
+    }
+    
+    setColor(12); cout << "  [!] HAZARDS : "; setColor(7); cout << "Dynamic Arena Events trigger every 3 rounds!\n\n";
+    this_thread::sleep_for(chrono::milliseconds(300));
+
+    drawHorizontalLine(54, 11);
+    this_thread::sleep_for(chrono::milliseconds(150));
+    cout << "    Press any key to enter the Arena..."; 
+    flushKeys(); _getch();
+}
+
 void showLeaderboard() {
     clearScreen();
     drawHorizontalLine(48, 14);
@@ -657,6 +731,7 @@ void showLeaderboard() {
     while (file >> winner >> loser >> wins) {
         cout << left << "    [CHAMPION] " << setw(12) << winner 
              << " (vs " << setw(12) << loser << ") | Total Wins: " << wins << "\n";
+        this_thread::sleep_for(chrono::milliseconds(80));
         found = true;
     }
     if (!found) cout << "    No champions yet. Be the first to claim glory!\n";
@@ -668,7 +743,6 @@ void showLeaderboard() {
     flushKeys(); _getch();
 }
 
-// Handles the data management system for deleting leaderboard and match logs
 void manageDataSystem() {
     clearScreen();
     setColor(12);
@@ -716,7 +790,6 @@ void manageDataSystem() {
     flushKeys(); _getch();
 }
 
-// Handles the upgrade area
 void upgradeArea(PlayerAccount* acc) {
     bool inUpgrade = true;
     while (inUpgrade) {
@@ -725,21 +798,31 @@ void upgradeArea(PlayerAccount* acc) {
         setColor(13); cout << "                  STORY UPGRADE AREA                  \n";
         drawHorizontalLine(54, 13);
         setColor(7);
+        this_thread::sleep_for(chrono::milliseconds(100));
         
         cout << "\n  +----------------------------------------------------+\n";
+        this_thread::sleep_for(chrono::milliseconds(50));
         cout << "  | Gladiator   : " << left << setw(14) << acc->username << " | Coins : " << setw(11) << acc->coins << " |\n";
+        this_thread::sleep_for(chrono::milliseconds(50));
         cout << "  | Overall Lvl : " << left << setw(14) << acc->overallLevel << " |                             |\n";
+        this_thread::sleep_for(chrono::milliseconds(50));
         cout << "  +----------------------------------------------------+\n";
         setColor(12);
         cout << "  | Muscle Lvl  : " << left << setw(14) << acc->muscleLevel << " | Base DMG : " << setw(8) << acc->baseDamage << " |\n";
+        this_thread::sleep_for(chrono::milliseconds(50));
         setColor(10);
         cout << "  | Vitality Lvl: " << left << setw(14) << acc->vitalityLevel << " | Max HP   : " << setw(8) << acc->maxHp << " |\n";
+        this_thread::sleep_for(chrono::milliseconds(50));
         setColor(7);
         cout << "  +----------------------------------------------------+\n\n";
+        this_thread::sleep_for(chrono::milliseconds(150));
 
         cout << "  1. Train Muscles (+5 Base Damage) - 50 Coins\n";
+        this_thread::sleep_for(chrono::milliseconds(60));
         cout << "  2. Enhance Vitality (+20 Max HP) - 50 Coins\n";
+        this_thread::sleep_for(chrono::milliseconds(60));
         cout << "  3. Return to Hub\n";
+        this_thread::sleep_for(chrono::milliseconds(100));
         cout << "  Choice: ";
 
         flushKeys();
@@ -780,7 +863,6 @@ void upgradeArea(PlayerAccount* acc) {
 // CORE BATTLE ENGINE (PvP & AI Support)
 // ==========================================
 
-// Main battle function that handles both PvP and PvE matches
 void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string specialMoves[], int gameMode) {
     showPreMatchBriefing(gameMode); 
 
@@ -804,7 +886,7 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
     srand(time(0));
     int initiativeCoin = rand() % 2;
     setColor(14);
-    cout << "  [INITIATIVE] Coin toss... ";
+    cout << "\n\n" << "  [INITIATIVE] Coin toss... ";
     if (initiativeCoin == 0) cout << "HEADS. " << names[0] << " gets the opening turn.\n";
     else cout << "TAILS. " << names[1] << " gets the opening turn.\n";
     setColor(7);
@@ -818,9 +900,6 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
 
         setColor(14); cout << "\n  === ROUND " << currentTurn + 1 << " ===\n"; setColor(7);
 
-        // ==============================
-        // ARENA HAZARD SYSTEM
-        // ==============================
         if (currentTurn > 0 && (currentTurn + 1) % 3 == 0) {
             setColor(13); cout << "\n  [!!!] ARENA EVENT DETECTED [!!!]\n"; setColor(7);
             this_thread::sleep_for(chrono::milliseconds(800));
@@ -850,60 +929,35 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
             int dice = 0;
             char finalAction = '1';
 
-            if (gameMode == 1) {
-                // --- CLASSIC MODE: Choose Strategy First, Then Roll ---
-                if (isHuman) {
-                    cout << "\n  [" << names[actorIndex] << "] Select Action Strategy:\n";
-                    cout << "  1. Attack | 2. Defend | 3. Item | 4. Charge | 5. Special | 6. Combo\n  Action: ";
-                    flushKeys(); finalAction = _getch(); cout << finalAction << "\n";
-                } else {
-                    setColor(13); cout << "\n  [" << names[actorIndex] << "] is formulating strategy";
-                    for(int d=0; d<3; d++) { cout << "."; flush(cout); this_thread::sleep_for(chrono::milliseconds(200)); }
-                    cout << "\n"; setColor(7);
-
-                    int aiRoll = rand() % 100;
-                    if (actorHp < maxHp[actorIndex] * 0.35 && inventory[0] > 0 && aiRoll < 25) finalAction = '3';
-                    else if (chargeReady[actorIndex] == 0 && aiRoll < 40) finalAction = '4';
-                    else if (opponentDef == 0 && lastDice == 5 && aiRoll < 60) finalAction = '6';
-                    else if (aiRoll < 75) finalAction = '1';
-                    else if (inventory[1] > 0) finalAction = '2';
-                    else if (aiRoll < 90) finalAction = '5';
-                    else finalAction = '1';
-                }
-
+            if (gameMode == 1) { // CLASSIC STRATEGY (Subset Choice)
                 cout << "\n  [" << names[actorIndex] << "]";
                 if (lastDice == 5) cout << " [COMBO READY]";
                 if (chargeReady[actorIndex] > 0) cout << " [CRITICAL READY]";
-                cout << " Press any key to roll the Action Dice for resolution...";
-                if(isHuman) { flushKeys(); _getch(); }
-                cout << "\n";
-                dice = rollDice();
-
-            } else {
-                // --- DICE-BOUND MODE: Roll First, Constrained Options ---
-                cout << "\n  [" << names[actorIndex] << "] Press any key to roll Stance Dice...";
+                cout << " Press any key to roll the Strategy Dice...";
                 if(isHuman) { flushKeys(); _getch(); }
                 cout << "\n";
                 dice = rollDice();
 
                 string validActions = "";
-                cout << "  [" << names[actorIndex] << "] Stance Options:\n";
-                if (dice == 1)      { validActions = "14"; cout << "  [1] Attack | [4] Charge\n"; }
-                else if (dice == 2) { validActions = "12"; cout << "  [1] Attack | [2] Defend\n"; }
-                else if (dice == 3) { validActions = "23"; cout << "  [2] Defend | [3] Item\n"; }
-                else if (dice == 4) { validActions = "34"; cout << "  [3] Item   | [4] Charge\n"; }
-                else if (dice == 5) { validActions = "15"; cout << "  [1] Attack | [5] Special\n"; }
-                else if (dice == 6) { validActions = "126";cout << "  [1] Attack | [2] Defend | [6] Combo\n"; }
+                setColor(13);
+                cout << "  [!] The Strategy Dice grants a specific set of tactical options:\n";
+                setColor(7);
+                if (dice == 1)      { validActions = "12"; cout << "      > [1] Attack | [2] Defend\n"; }
+                else if (dice == 2) { validActions = "23"; cout << "      > [2] Defend | [3] Item\n"; }
+                else if (dice == 3) { validActions = "34"; cout << "      > [3] Item   | [4] Charge\n"; }
+                else if (dice == 4) { validActions = "45"; cout << "      > [4] Charge | [5] Special\n"; }
+                else if (dice == 5) { validActions = "56"; cout << "      > [5] Special| [6] Combo\n"; }
+                else if (dice == 6) { validActions = "126";cout << "      > [1] Attack | [2] Defend | [6] Combo (Wildcard!)\n"; }
 
                 if (lastDice == 5) {
-                    setColor(14); cout << "  [COMBO READY]\n"; setColor(7);
+                    setColor(14); cout << "  [!] COMBO READY! (Option 6 available if granted)\n"; setColor(7);
                 }
                 if (chargeReady[actorIndex] > 0) {
-                    setColor(13); cout << "  [CRITICAL READY]\n"; setColor(7);
+                    setColor(13); cout << "  [!] CRITICAL CHARGE ACTIVE!\n"; setColor(7);
                 }
 
                 if (isHuman) {
-                    cout << "  Action: ";
+                    cout << "  > Choose your action: ";
                     flushKeys();
                     while (true) {
                         finalAction = _getch();
@@ -913,19 +967,31 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
                         }
                     }
                 } else {
-                    // AI logic tailored for subset
                     int aiRoll = rand() % 100;
-                    if (validActions.find('3') != string::npos && actorHp < maxHp[actorIndex] * 0.5 && inventory[0] > 0 && aiRoll < 30) finalAction = '3';
-                    else if (validActions.find('6') != string::npos && lastDice == 5 && aiRoll < 55) finalAction = '6';
-                    else if (validActions.find('4') != string::npos && aiRoll < 70) finalAction = '4';
-                    else if (validActions.find('5') != string::npos && aiRoll < 82) finalAction = '5';
-                    else if (validActions.find('2') != string::npos && inventory[1] > 0 && aiRoll < 92) finalAction = '2';
+                    if (validActions.find('6') != string::npos && lastDice == 5 && aiRoll < 60) finalAction = '6';
+                    else if (validActions.find('5') != string::npos && aiRoll < 75) finalAction = '5';
+                    else if (validActions.find('3') != string::npos && actorHp < maxHp[actorIndex] * 0.5 && inventory[0] > 0 && aiRoll < 85) finalAction = '3';
+                    else if (validActions.find('4') != string::npos && aiRoll < 90) finalAction = '4';
+                    else if (validActions.find('2') != string::npos && inventory[1] > 0 && aiRoll < 95) finalAction = '2';
                     else if (validActions.find('1') != string::npos) finalAction = '1';
-                    else finalAction = validActions[0]; // fallback
+                    else finalAction = validActions[0];
                     
                     this_thread::sleep_for(chrono::milliseconds(800));
                     cout << "  Action: " << finalAction << "\n";
                 }
+            } else { // DICE-BOUND MODE (Strict Binding)
+                cout << "\n  [" << names[actorIndex] << "] Press any key to roll the Dice of Binding...";
+                if(isHuman) { flushKeys(); _getch(); }
+                cout << "\n";
+                dice = rollDice();
+                
+                finalAction = '0' + dice; 
+                
+                setColor(12);
+                cout << "  [!!!] FATE DECIDES! The Dice of Binding dictates your action!\n";
+                setColor(7);
+                cout << "      > Bound Action Forced: [" << actionNameFromDice(dice) << "]\n";
+                this_thread::sleep_for(chrono::milliseconds(800));
             }
 
             // RESOLVE SELECTED ACTION
@@ -939,11 +1005,12 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
                         criticalHit = true;
                         chargeReady[actorIndex] = 0;
                     }
-                    damageOut = resolveAttackDamage(baseDmg, attackStyle, dice, actorHp, criticalHit);
+                    int hitRoll = (rand() % 6) + 1;
+                    damageOut = resolveAttackDamage(baseDmg, attackStyle, hitRoll, actorHp, criticalHit);
                     break;
                 }
                 case '2':
-                    actorDef = chooseShieldStyle(isHuman, names[actorIndex], inventory, dice);
+                    actorDef = chooseShieldStyle(isHuman, names[actorIndex], inventory, (rand() % 6) + 1);
                     break;
                 case '3':
                     actorHp += useItem(inventory, isHuman, maxHp[actorIndex]);
@@ -957,12 +1024,8 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
                     setColor(14); cout << "  > NEXT ATTACK IS NOW A CRITICAL HIT!\n"; setColor(7);
                     break;
                 case '5':
-                    if (dice >= 5 || gameMode == 1) { // In classic, roll checks happen here. In mode 2, dice guarantees it
-                        setColor(13); cout << "  > SPECIAL POWER UNLOCKED! Unleashing " << specialMove << "!!\n"; setColor(7);
-                        damageOut = baseDmg * 3;
-                    } else {
-                        setColor(12); cout << "  > Special Failed! Dice roll too low.\n"; setColor(7);
-                    }
+                    setColor(13); cout << "  > SPECIAL POWER UNLOCKED! Unleashing " << specialMove << "!!\n"; setColor(7);
+                    damageOut = baseDmg * 3;
                     break;
                 case '6':
                     if (lastDice == 5) {
@@ -970,7 +1033,7 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
                         damageOut = baseDmg * 4;
                     } else {
                         setColor(14); cout << "  > COMBO STRIKE! " << specialMove << " hits rapidly!\n"; setColor(7);
-                        damageOut = baseDmg * 2; // Punish slightly for not setting up properly compared to special
+                        damageOut = baseDmg * 2; 
                     }
                     break;
             }
@@ -986,9 +1049,6 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
             return dice;
         };
 
-        // ==============================
-        // INITIATIVE TURN ORDER
-        // ==============================
         p1Def = 0;
         p2Def = 0;
         int dice1 = 0;
@@ -1034,9 +1094,6 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
     drawHorizontalLine(54, 11);
     setColor(7);
 
-    // ==========================================
-    // REWARD SYSTEM (COINS FOR STORY MODE ONLY)
-    // ==========================================
     if (!isPvP) {
         if (hp[0] > 0 && hp[1] <= 0) {
             setColor(10); cout << "  > STORY VICTORY! You earned 50 Coins for upgrades.\n"; setColor(7);
@@ -1051,9 +1108,6 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
         saveAccount(p1Acc);
     }
 
-    // ==========================================
-    // MATCHUP-SPECIFIC LEADERBOARD SYSTEM
-    // ==========================================
     if (winnerName != "") { 
         string lbWinners[100];
         string lbLosers[100];
@@ -1086,9 +1140,6 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
         writeLB.close();
     }
 
-    // ==========================================
-    // STACKING MATCH LOGS WITH HAZARD TRACKING
-    // ==========================================
     time_t now = time(0);
     char* dt = ctime(&now);
     
@@ -1112,7 +1163,7 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
 }
 
 // ==========================================
-// MAIN ENGINE
+// MAIN ENGINE (ANIMATED DRAW-IN)
 // ==========================================
 int main() {
     CREATE_DIR("accounts");
@@ -1125,11 +1176,16 @@ int main() {
         clearScreen();
         showTitleArt();
         drawHorizontalLine(54, 11);
+        this_thread::sleep_for(chrono::milliseconds(100));
         cout << "  1. Login to Existing Account\n";
+        this_thread::sleep_for(chrono::milliseconds(70));
         cout << "  2. Create New Account\n";
+        this_thread::sleep_for(chrono::milliseconds(70));
         cout << "  3. Manage Account\n";
+        this_thread::sleep_for(chrono::milliseconds(70));
         cout << "  4. Exit System\n";
         drawHorizontalLine(54, 11);
+        this_thread::sleep_for(chrono::milliseconds(100));
         cout << "  Select an option: ";
         
         flushKeys();
@@ -1185,28 +1241,40 @@ int main() {
             }
             this_thread::sleep_for(chrono::milliseconds(1500));
 
-            // --- BATTLE HUB (Logged In) ---
             bool inHub = true;
             while (inHub) {
                 clearScreen();
                 drawHorizontalLine(54, 14);
                 setColor(14); cout << "               [ GLADIATOR HUB: " << currentAcc.username << " ]\n"; setColor(7);
                 drawHorizontalLine(54, 14);
+                this_thread::sleep_for(chrono::milliseconds(100));
                 cout << "\n  +----------------------------------------------------+\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  | Overall Lvl: " << left << setw(13) << currentAcc.overallLevel << " | Coins : " << setw(11) << currentAcc.coins << " |\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  | Max HP     : " << left << setw(13) << currentAcc.maxHp << " | DMG   : " << setw(11) << currentAcc.baseDamage << " |\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  +----------------------------------------------------+\n\n";
+                this_thread::sleep_for(chrono::milliseconds(150));
 
                 cout << "  1. Story Battle (Classic Strategy)\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  2. Story Battle (Dice-Bound Mode)\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  3. Local PvP (Classic Strategy)\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  4. Local PvP (Dice-Bound Mode)\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  5. Upgrade Area\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  6. View Hall of Champions\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  7. Manage Records (Delete Data)\n";
+                this_thread::sleep_for(chrono::milliseconds(50));
                 cout << "  8. Logout\n";
                 cout << "\n";
                 drawHorizontalLine(54, 11);
+                this_thread::sleep_for(chrono::milliseconds(100));
                 cout << "  Select an option: ";
 
                 flushKeys();
