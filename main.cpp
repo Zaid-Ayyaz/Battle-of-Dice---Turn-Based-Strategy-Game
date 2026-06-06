@@ -9,9 +9,11 @@
 #include <cstdlib> 
 #include <cstdio> 
 
-// +----------------------------------------+
-// WINDOWS & LINUX SUPPORT
-// +----------------------------------------+
+/*
+ +----------------------------------------+
+ WINDOWS & LINUX SUPPORT
+ +----------------------------------------+
+*/
 #ifdef _WIN32
 #include <windows.h>
 #include <conio.h>
@@ -40,11 +42,11 @@ void flushKeys() {
 #endif
 
 using namespace std;
-
-// +----------------------------------------+
-// ACCOUNT SYSTEM STRUCTURES
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ ACCOUNT SYSTEM STRUCTURES
+ +----------------------------------------+
+*/
 // Structure to hold player account information, including credentials and stats
 struct PlayerAccount {
     string username = "";
@@ -56,45 +58,45 @@ struct PlayerAccount {
     int muscleLevel = 0;
     int vitalityLevel = 0;
 };
-
-// +----------------------------------------+
-// UTILITY FUNCTIONS & DYNAMIC UI
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ UTILITY FUNCTIONS & DYNAMIC UI
+ +----------------------------------------+
+*/
 // Cross-platform console clearing
 void clearScreen() {
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
 }
 
 // Cross-platform cursor positioning
 void gotoxy(int x, int y) {
-#ifdef _WIN32
-    COORD coord;
-    coord.X = x;
-    coord.Y = y;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-#else
-    cout << "\033[" << y + 1 << ";" << x + 1 << "H" << flush;
-#endif
+    #ifdef _WIN32
+        COORD coord;
+        coord.X = x;
+        coord.Y = y;
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+        #else
+        cout << "\033[" << y + 1 << ";" << x + 1 << "H" << flush;
+    #endif
 }
 
 // Cross-platform colored text output
 void setColor(int color) {
-#ifdef _WIN32
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-#else
-    if (color == 10) cout << "\033[1;32m";
-    else if (color == 14) cout << "\033[1;33m";
-    else if (color == 12) cout << "\033[1;31m";
-    else if (color == 11) cout << "\033[1;36m";
-    else if (color == 13) cout << "\033[1;35m";
-    else cout << "\033[0m";
-    cout << flush;
-#endif
+    #ifdef _WIN32
+        SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+    #else
+        if (color == 10) cout << "\033[1;32m";
+        else if (color == 14) cout << "\033[1;33m";
+        else if (color == 12) cout << "\033[1;31m";
+        else if (color == 11) cout << "\033[1;36m";
+        else if (color == 13) cout << "\033[1;35m";
+        else cout << "\033[0m";
+        cout << flush;
+    #endif
 }
 
 // Simple horizontal line drawer with color and animation
@@ -108,13 +110,17 @@ void drawHorizontalLine(int width, int color) {
     cout << "+\n";
     setColor(7);
 }
-
-// +----------------------------------------+
-// LIVE UI UPDATE
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ LIVE UI UPDATE
+ +----------------------------------------+
+*/
 // Displays a live status update
 void printLiveUpdate(string n1, int h1, int m1, string n2, int h2, int m2) {
+    // n1 = Player 1 Name, h1 = Player 1 HP, m1 = Player 1 Max HP
+    // n2 = Player 2 Name, h2 = Player 2 HP, m2 = Player 2 Max HP
+    // f1 and f2 are the filled portion of the health bar, calculated as a ratio of current HP to max HP
+
     cout << "\n";
     setColor(11); cout << "  +------------------ LIVE STATUS ------------------+\n"; setColor(7);
     
@@ -135,11 +141,11 @@ void printLiveUpdate(string n1, int h1, int m1, string n2, int h2, int m2) {
     setColor(11); cout << "  +-------------------------------------------------+\n"; setColor(7);
     this_thread::sleep_for(chrono::milliseconds(1200)); // Pause to let player read
 }
-
-// +----------------------------------------+
-// ACCOUNT MANAGEMENT SYSTEM
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ ACCOUNT MANAGEMENT SYSTEM
+ +----------------------------------------+
+*/
 // Generates a filename for account storage
 string getAccountFilename(string name) {
     for (char &c : name) c = tolower(c);
@@ -191,9 +197,14 @@ void saveAccount(PlayerAccount* acc) {
     string filename = getAccountFilename(acc->username);
     ofstream outFile(filename);
     if (outFile.is_open()) {
-        outFile << acc->username << "\n" << acc->password << "\n" << acc->coins << "\n" << acc->maxHp << "\n"
-            << acc->baseDamage << "\n" << acc->overallLevel << "\n"
-            << acc->muscleLevel << "\n" << acc->vitalityLevel << "\n";
+        outFile << acc->username 
+        << "\n" << acc->password 
+        << "\n" << acc->coins 
+        << "\n" << acc->maxHp 
+        << "\n" << acc->baseDamage 
+        << "\n" << acc->overallLevel 
+        << "\n" << acc->muscleLevel 
+        << "\n" << acc->vitalityLevel << "\n";
         outFile.close();
     }
 }
@@ -299,11 +310,11 @@ void manageAccountSystem(PlayerAccount* acc, bool* inHub) {
         }
     }
 }
-
-// +----------------------------------------+
-// ASCII ART COMPONENTS
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ ASCII ART COMPONENTS
+ +----------------------------------------+
+*/
 // Displays the title art of Battle of Dice
 void showTitleArt() {
     setColor(14);
@@ -392,11 +403,11 @@ void animateLoadingScreen() {
     cout << "System Ready! Press any key...";
     flushKeys(); (void)_getch();
 }
-
-// +----------------------------------------+
-// BATTLE FUNCTIONS & MECHANICS
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ BATTLE FUNCTIONS & MECHANICS
+ +----------------------------------------+
+*/
 // Displays the current status of both players with health bars and inventory
 void displayStatus(string names[], int hp[], int maxHp[], int* invP1, int* invP2) {
     for (int p = 0; p < 2; p++) {
@@ -666,11 +677,11 @@ int useItem(int* inventory, bool isHuman, int maxHp) {
     setColor(12); cout << "  > Inventory empty! Turn wasted.\n"; setColor(7);
     return 0;
 }
-
-// +----------------------------------------+
-// MENUS & BRIEFING
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ MENUS & BRIEFING
+ +----------------------------------------+
+*/
 // Displays the pre-match briefing with game mode details and hazards
 void showPreMatchBriefing(int gameMode) {
     clearScreen();
@@ -884,11 +895,11 @@ void upgradeArea(PlayerAccount* acc) {
         }
     }
 }
-
-// +----------------------------------------+
-// CORE BATTLE ENGINE (PvP & AI Support)
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ CORE BATTLE ENGINE (PvP & AI Support)
+ +----------------------------------------+
+*/
 // The main function that orchestrates the battle between two players, handling turns, actions, and arena events, with support for both PvP and AI opponents
 void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string specialMoves[], int gameMode) {
     showPreMatchBriefing(gameMode);
@@ -953,6 +964,15 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
         auto resolveTurn = [&](int actorIndex, int opponentIndex, int& actorDef, int& opponentDef,
             int* inventory, int& actorHp, int& opponentHp, int baseDmg,
             int& lastDice, const string& specialMove, bool isHuman, int& damageOut) {
+                // actorIndex: 0 for Player 1, 1 for Player 2
+                // opponentIndex: 1 for Player 1, 0 for Player 2
+                // actorDef and opponentDef are passed by reference to update their defense states
+                // inventory is the current player's inventory array
+                // actorHp and opponentHp are passed by reference to update their HP
+                // baseDmg is the current player's base damage
+                // lastDice is passed by reference to store the last dice roll for combo logic
+                // specialMove is the name of the player's special move for display purposes
+                // isHuman indicates if the current actor is a human player or AI
 
                 damageOut = 0;
                 int dice = 0;
@@ -1096,7 +1116,7 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
         int dice1 = 0;
         int dice2 = 0;
 
-        // Removed turnOrder references - initiative handled directly
+        
         if (initiativeCoin == 0) {
             dice1 = resolveTurn(0, 1, p1Def, p2Def, invP1, hp[0], hp[1], baseDamage[0], lastDice1, specialMoves[0], true, p1DmgDealt);
             this_thread::sleep_for(chrono::milliseconds(800));
@@ -1150,6 +1170,10 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
     }
 
     if (winnerName != "") {
+        // lbWinners = an array that stores the names of the winners from the leaderboard file. Each index corresponds to a match record, where lbWinners[i] is the winner of the i-th recorded match. This array is used to read existing leaderboard data, update win counts for specific matchups, and write back the updated leaderboard after a battle concludes.
+        // lbLosers = an array that stores the names of the losers from the leaderboard file. Each index corresponds to a match record, where lbLosers[i] is the loser of the i-th recorded match. This array works in parallel with lbWinners and lbWins to maintain a complete record of match outcomes for the leaderboard system.
+        // lbWins = an array that stores the number of wins for each winner-loser pair from the leaderboard file. Each index corresponds to a match record, where lbWins[i] is the
+
         string lbWinners[100];
         string lbLosers[100];
         int lbWins[100];
@@ -1181,19 +1205,17 @@ void startBattle(PlayerAccount* p1Acc, PlayerAccount* p2Acc, bool isPvP, string 
         writeLB.close();
     }
 
-    // Removed entire match logging system (battleLog write + file output)
-
     delete[] invP1;
     delete[] invP2;
 
     cout << "\n  Press any key to return to the Hub...";
     flushKeys(); (void)_getch();
 }
-
-// +----------------------------------------+
-// MAIN ENGINE
-// +----------------------------------------+
-
+/*
+ +----------------------------------------+
+ MAIN ENGINE
+ +----------------------------------------+
+*/
 // The main function that initializes the system, handles user authentication, and navigates the main menu and hub, with animated text and loading screens for enhanced user experience
 int main() {
     (void)CREATE_DIR("accounts");
